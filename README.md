@@ -10,6 +10,10 @@ and `font.normal.family` and `font.normal.size` take `font_family` and `font_siz
 are set. Those keys must be in the settings already, as Vicinae writes them once a theme or
 font is picked in its own settings. Set `settings = null` to leave the file alone.
 
+Vicinae lists the theme under the theme's `name` (`Theme.name`), or the kosmos' name when that
+is null. With the theme's `files = .per_kosmos` the file is named after the kosmos instead
+(`krystallos.dark.toml`, selected as `krystallos.dark`), so each kosmos applied keeps its own.
+
 `from(theme)` sets the core colors from black, white and cyan (the accent), the accents from
 the wheel, muted text and selections from the theme's variations, and the variant from the
 theme's mode. The font is left alone.
@@ -18,9 +22,10 @@ theme's mode. The font is left alone.
 
 | Field | Default |
 |---|---|
-| `file` | `~/.local/share/vicinae/themes/kosm.toml`; the theme's name is the file name without `.toml` |
+| `file` | `~/.local/share/vicinae/themes/{name}.toml`; `{name}` is `kosm`, or the kosmos' name with `files = .per_kosmos`; the theme is selected by the file name without `.toml` |
+| `files` | the theme's `files`: `.shared` or `.per_kosmos` |
 | `settings` | `~/.config/vicinae/settings.json`; null leaves it alone |
-| `meta` | `name = "kosm"`, `description`, `variant = .dark`, `inherits = null` |
+| `meta` | `name` (the theme's `name`, or the name kosm applies the kosmos under), `description`, `variant = .dark`, `inherits = null` |
 | `colors` | every section of Vicinae's theme template (`vicinae theme template`): `core`, `main_window`, `settings_window`, `accents`, `shortcut`, `text`, `input`, `button`, `list`, `grid`, `scrollbars`, `loading`; null leaves each color to Vicinae |
 | `font_family` | null: left as it is |
 | `font_size` | null: left as it is |
