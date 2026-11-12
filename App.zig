@@ -44,26 +44,26 @@ pub const Meta = struct {
 /// A theme's variant.
 pub const Variant = enum { dark, light };
 
-/// Colors from the theme: the core from black, white and cyan (the accent), the accents from
-/// the wheel, muted text and selections from the theme's variations. The rest Vicinae derives
+/// Colors from the theme: the core from the background, foreground and accent roles, danger
+/// and success from the error and success roles, the accents from the wheel, muted text and selections from the theme's variations. The rest Vicinae derives
 /// from the core.
 pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
     const variations = theme.variations;
-    const foreground = if (theme.mode == .dark) palette.white else palette.black;
-    const background = if (theme.mode == .dark) palette.black else palette.white;
+    const foreground = theme.roles.foreground;
+    const background = theme.roles.background;
     const raised = variations.state.selected.apply(background);
     return .{
         .files = theme.files,
         .meta = .{ .name = theme.name, .variant = if (theme.mode == .dark) .dark else .light },
         .colors = .{
             .core = .{
-                .accent = palette.cyan,
+                .accent = theme.roles.accent,
                 .accent_foreground = background,
                 .background = background,
                 .foreground = foreground,
                 .secondary_background = raised,
-                .border = palette.cyan,
+                .border = theme.roles.accent,
             },
             .accents = .{
                 .blue = palette.blue,
@@ -77,8 +77,8 @@ pub fn from(theme: kosm.Theme) App {
             },
             .text = .{
                 .muted = variations.emphasis.muted.apply(foreground),
-                .danger = palette.red,
-                .success = palette.green,
+                .danger = theme.roles.@"error",
+                .success = theme.roles.success,
                 .selection = .{ .background = foreground, .foreground = background },
             },
             .list = .{ .item = .{ .selection = .{
@@ -198,7 +198,7 @@ const settings_json =
     \\
 ;
 
-const test_theme = kosm.Theme.from(.{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc"), .cyan = kosm.hex("2d8699") }, .dark);
+const test_theme = kosm.Theme.from(.{ .palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc"), .cyan = kosm.hex("2d8699") }, .mode = .dark });
 
 test "the theme is written whole without empty sections, then selected with the font" {
     var fixture: Fixture = undefined;

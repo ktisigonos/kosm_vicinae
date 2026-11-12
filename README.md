@@ -14,8 +14,8 @@ Vicinae lists the theme under the theme's `name` (`Theme.name`), or the kosmos' 
 is null. With the theme's `files = .per_kosmos` the file is named after the kosmos instead
 (`krystallos.dark.toml`, selected as `krystallos.dark`), so each kosmos applied keeps its own.
 
-`from(theme)` sets the core colors from black, white and cyan (the accent), the accents from
-the wheel, muted text and selections from the theme's variations, and the variant from the
+`from(theme)` sets the core colors from the theme's background, foreground and accent roles,
+danger and success from the error and success roles, the accents from the wheel, muted text and selections from the theme's variations, and the variant from the
 theme's mode. The font is left alone.
 
 ## Fields
