@@ -23,7 +23,8 @@ colors: Colors = .{},
 font_family: ?[]const u8 = null,
 /// `font.normal.size` in the settings, in points. null: left as it is.
 font_size: ?f64 = null,
-/// `launcher_window.opacity` in the settings: how opaque the launcher's window is, 0 to 1.
+/// `launcher_window.opacity` in the settings: how opaque the launcher's window is, 0 to 1. A
+/// missing key, as before an opacity is picked in Vicinae, is left and warned about.
 /// `from`: the theme's `background_alpha`. null: left as it is.
 opacity: ?f64 = null,
 
@@ -120,7 +121,15 @@ pub fn apply(self: App, output: *kosm.Output) !void {
     try settings.set(selected, theme_name);
     if (self.font_family) |family| try settings.set("font.normal.family", family);
     if (self.font_size) |size| try settings.set("font.normal.size", size);
-    if (self.opacity) |opacity| try settings.set("launcher_window.opacity", opacity);
+    if (self.opacity) |opacity| try setOpacity(output, &settings, opacity);
+}
+
+/// Sets `launcher_window.opacity`, which Vicinae writes only once an opacity is picked in its
+/// settings; without it the opacity stays Vicinae's and the apply warns.
+fn setOpacity(output: *kosm.Output, settings: *kosm.Output.Selection, opacity: f64) !void {
+    const matches = try settings.nodes("launcher_window.opacity");
+    if (matches.len == 0) return output.warn(settings.selector, "has no 'launcher_window.opacity'; pick an opacity in Vicinae's settings once, so kosm can set it", .{});
+    try settings.set("launcher_window.opacity", opacity);
 }
 
 /// The set colors of a section and the sections inside it, by field name; null when none is set,
@@ -242,6 +251,16 @@ test "the theme is written whole without empty sections, then selected with the 
     try testing.expect(std.mem.indexOf(u8, settings, "\"family\": \"Iosevka\",\n         \"size\": 12.5\n") != null);
     try testing.expect(std.mem.indexOf(u8, settings, "\"opacity\": 1\n") != null);
     try testing.expect(std.mem.startsWith(u8, settings, "// This configuration"));
+}
+
+test "settings without an opacity keep Vicinae's, with a warning" {
+    var fixture: Fixture = undefined;
+    try fixture.init("{\n   \"theme\": {\n      \"dark\": {\n         \"name\": \"Ricer\"\n      }\n   }\n}\n");
+    defer fixture.deinit();
+    try from(test_theme).apply(&fixture.output);
+    try testing.expect(std.mem.indexOf(u8, fixture.planned("~/.config/vicinae/settings.json"), "opacity") == null);
+    try testing.expectEqual(1, fixture.warnings.items.items.len);
+    try testing.expect(std.mem.indexOf(u8, fixture.warnings.items.items[0].message, "launcher_window.opacity") != null);
 }
 
 test "App{} writes only the meta, a light theme is selected under light, and a bad file fails" {

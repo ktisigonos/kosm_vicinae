@@ -7,7 +7,8 @@ colors that are set; Vicinae derives the rest from the core colors, or takes the
 `meta.inherits`. It then edits `~/.config/vicinae/settings.json`, keeping its comments and
 other settings: `theme.dark.name` (or `theme.light.name`, by `meta.variant`) becomes `kosm`,
 `font.normal.family` and `font.normal.size` take `font_family` and `font_size`, and
-`launcher_window.opacity` takes `opacity`, when they are set. Those keys must be in the settings already, as Vicinae writes them once a theme or
+`launcher_window.opacity` takes `opacity`, when they are set (a missing opacity, as before
+one is picked in Vicinae, is left alone with a warning). Those keys must be in the settings already, as Vicinae writes them once a theme or
 font is picked in its own settings. Set `settings = null` to leave the file alone.
 
 Vicinae lists the theme under the theme's `name` (`Theme.name`), or the kosmos' name when that
