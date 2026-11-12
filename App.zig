@@ -23,6 +23,9 @@ colors: Colors = .{},
 font_family: ?[]const u8 = null,
 /// `font.normal.size` in the settings, in points. null: left as it is.
 font_size: ?f64 = null,
+/// `launcher_window.opacity` in the settings: how opaque the launcher's window is, 0 to 1.
+/// `from`: the theme's `background_alpha`. null: left as it is.
+opacity: ?f64 = null,
 
 /// A theme's `[colors]`.
 pub const Colors = @import("Colors.zig");
@@ -44,7 +47,7 @@ pub const Meta = struct {
 /// A theme's variant.
 pub const Variant = enum { dark, light };
 
-/// Colors from the theme: the core from the background, foreground and accent roles, danger
+/// The window's opacity from the theme's `background_alpha`, and colors from the theme: the core from the background, foreground and accent roles, danger
 /// and success from the error and success roles, the accents from the wheel, muted text and selections from the theme's variations. The rest Vicinae derives
 /// from the core.
 pub fn from(theme: kosm.Theme) App {
@@ -55,6 +58,7 @@ pub fn from(theme: kosm.Theme) App {
     const raised = variations.state.selected.apply(background);
     return .{
         .files = theme.files,
+        .opacity = theme.background_alpha,
         .meta = .{ .name = theme.name, .variant = if (theme.mode == .dark) .dark else .light },
         .colors = .{
             .core = .{
@@ -89,7 +93,8 @@ pub fn from(theme: kosm.Theme) App {
     };
 }
 
-/// Writes the theme whole, then selects it and sets the font in `settings` unless it is null.
+/// Writes the theme whole, then selects it and sets the font and opacity in `settings` unless it
+/// is null.
 pub fn apply(self: App, output: *kosm.Output) !void {
     const file = try output.namedFile(self.file, self.files);
     const theme_name = std.Io.Dir.path.stem(file);
@@ -115,6 +120,7 @@ pub fn apply(self: App, output: *kosm.Output) !void {
     try settings.set(selected, theme_name);
     if (self.font_family) |family| try settings.set("font.normal.family", family);
     if (self.font_size) |size| try settings.set("font.normal.size", size);
+    if (self.opacity) |opacity| try settings.set("launcher_window.opacity", opacity);
 }
 
 /// The set colors of a section and the sections inside it, by field name; null when none is set,
@@ -193,6 +199,9 @@ const settings_json =
     \\         "name": "Ricer",
     \\         "icon_theme": "Ricer"
     \\      }
+    \\   },
+    \\   "launcher_window": {
+    \\      "opacity": 0.6
     \\   }
     \\}
     \\
@@ -200,7 +209,7 @@ const settings_json =
 
 const test_theme = kosm.Theme.from(.{ .palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc"), .cyan = kosm.hex("2d8699") }, .mode = .dark });
 
-test "the theme is written whole without empty sections, then selected with the font" {
+test "the theme is written whole without empty sections, then selected with the font and opacity" {
     var fixture: Fixture = undefined;
     try fixture.init(settings_json);
     defer fixture.deinit();
@@ -231,6 +240,7 @@ test "the theme is written whole without empty sections, then selected with the 
     const settings = fixture.planned("~/.config/vicinae/settings.json");
     try testing.expect(std.mem.indexOf(u8, settings, "\"name\": \"kosm\",\n         \"icon_theme\": \"Ricer\"") != null);
     try testing.expect(std.mem.indexOf(u8, settings, "\"family\": \"Iosevka\",\n         \"size\": 12.5\n") != null);
+    try testing.expect(std.mem.indexOf(u8, settings, "\"opacity\": 1\n") != null);
     try testing.expect(std.mem.startsWith(u8, settings, "// This configuration"));
 }
 
