@@ -98,6 +98,15 @@ pub fn from(theme: kosm.Theme) App {
     };
 }
 
+/// Restarts the running Vicinae when the app sets an icon theme: Vicinae reads an icon theme's
+/// files once, so a theme regenerated under the same name shows only after a restart. Its
+/// own theme and settings it reloads by itself. With no Vicinae running, kosm only warns.
+pub fn reload(self: App, reloader: *kosm.Reloader) !void {
+    if (self.icon_theme == null or self.settings == null) return;
+    // `server --replace` kills the old server and becomes the new one, so it runs detached.
+    try reloader.run(&.{ "sh", "-c", "vicinae ping >/dev/null 2>&1 && exec setsid -f vicinae server --replace >/dev/null 2>&1" });
+}
+
 /// Writes the theme whole, then selects it and sets the font and opacity in `settings` unless it
 /// is null.
 pub fn apply(self: App, output: *kosm.Output) !void {

@@ -12,6 +12,11 @@ other settings: `theme.dark.name` (or `theme.light.name`, by `meta.variant`) bec
 Vicinae, is left alone with a warning). Those keys must be in the settings already, as Vicinae writes them once a theme or
 font is picked in its own settings. Set `settings = null` to leave the file alone.
 
+Vicinae reloads its theme and settings by itself. With `icon_theme` set, every apply restarts
+a running Vicinae server (`vicinae server --replace`, detached): it reads an icon theme's files
+only once, so recolored icons under the same name would not show otherwise. With no Vicinae
+running, kosm only warns.
+
 Vicinae lists the theme under the theme's `name` (`Theme.name`), or the kosmos' name when that
 is null. With the theme's `files = .per_kosmos` the file is named after the kosmos instead
 (`krystallos.dark.toml`, selected as `krystallos.dark`), so each kosmos applied keeps its own.
