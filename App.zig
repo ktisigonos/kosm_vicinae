@@ -23,6 +23,10 @@ colors: Colors = .{},
 font_family: ?[]const u8 = null,
 /// `font.normal.size` in the settings, in points. null: left as it is.
 font_size: ?f64 = null,
+/// `theme.dark.icon_theme` or `theme.light.icon_theme` in the settings, by `meta.variant`: the
+/// icon theme's folder name. A missing key, as before an icon theme is picked in Vicinae, is
+/// left and warned about. null (default): left as it is.
+icon_theme: ?[]const u8 = null,
 /// `launcher_window.opacity` in the settings: how opaque the launcher's window is, 0 to 1. A
 /// missing key, as before an opacity is picked in Vicinae, is left and warned about.
 /// `from`: the theme's `background_alpha`. null: left as it is.
@@ -114,22 +118,23 @@ pub fn apply(self: App, output: *kosm.Output) !void {
     try output.generate(.{ .file = file, .lang = "toml" }, kosm.Value{ .table = sections.items });
     const settings_file = self.settings orelse return;
     var settings = try output.edit(.{ .files = settings_file, .lang = "jsonc" });
-    const selected: []const u8 = switch (self.meta.variant) {
-        .dark => "theme.dark.name",
-        .light => "theme.light.name",
+    const selected: []const u8, const icon_key: []const u8 = switch (self.meta.variant) {
+        .dark => .{ "theme.dark.name", "theme.dark.icon_theme" },
+        .light => .{ "theme.light.name", "theme.light.icon_theme" },
     };
     try settings.set(selected, theme_name);
     if (self.font_family) |family| try settings.set("font.normal.family", family);
     if (self.font_size) |size| try settings.set("font.normal.size", size);
-    if (self.opacity) |opacity| try setOpacity(output, &settings, opacity);
+    if (self.icon_theme) |icon_theme| try setPicked(output, &settings, icon_key, icon_theme, "an icon theme");
+    if (self.opacity) |opacity| try setPicked(output, &settings, "launcher_window.opacity", opacity, "an opacity");
 }
 
-/// Sets `launcher_window.opacity`, which Vicinae writes only once an opacity is picked in its
-/// settings; without it the opacity stays Vicinae's and the apply warns.
-fn setOpacity(output: *kosm.Output, settings: *kosm.Output.Selection, opacity: f64) !void {
-    const matches = try settings.nodes("launcher_window.opacity");
-    if (matches.len == 0) return output.warn(settings.selector, "has no 'launcher_window.opacity'; pick an opacity in Vicinae's settings once, so kosm can set it", .{});
-    try settings.set("launcher_window.opacity", opacity);
+/// Sets `key`, which Vicinae writes only once `what` is picked in its settings; without it the
+/// value stays Vicinae's and the apply warns.
+fn setPicked(output: *kosm.Output, settings: *kosm.Output.Selection, key: []const u8, value: anytype, what: []const u8) !void {
+    const matches = try settings.nodes(key);
+    if (matches.len == 0) return output.warn(settings.selector, "has no '{s}'; pick {s} in Vicinae's settings once, so kosm can set it", .{ key, what });
+    try settings.set(key, value);
 }
 
 /// The set colors of a section and the sections inside it, by field name; null when none is set,
@@ -225,6 +230,7 @@ test "the theme is written whole without empty sections, then selected with the 
     var app = from(test_theme);
     app.font_family = "Iosevka";
     app.font_size = 12.5;
+    app.icon_theme = "kosm";
     try app.apply(&fixture.output);
 
     const written = fixture.planned("~/.local/share/vicinae/themes/kosm.toml");
@@ -247,20 +253,25 @@ test "the theme is written whole without empty sections, then selected with the 
     try testing.expect(std.mem.indexOf(u8, written, "[colors.list.item.selection]\n") != null);
 
     const settings = fixture.planned("~/.config/vicinae/settings.json");
-    try testing.expect(std.mem.indexOf(u8, settings, "\"name\": \"kosm\",\n         \"icon_theme\": \"Ricer\"") != null);
+    try testing.expect(std.mem.indexOf(u8, settings, "\"name\": \"kosm\",\n         \"icon_theme\": \"kosm\"") != null);
     try testing.expect(std.mem.indexOf(u8, settings, "\"family\": \"Iosevka\",\n         \"size\": 12.5\n") != null);
     try testing.expect(std.mem.indexOf(u8, settings, "\"opacity\": 1\n") != null);
     try testing.expect(std.mem.startsWith(u8, settings, "// This configuration"));
 }
 
-test "settings without an opacity keep Vicinae's, with a warning" {
+test "settings without an opacity or icon theme keep Vicinae's, with a warning each" {
     var fixture: Fixture = undefined;
     try fixture.init("{\n   \"theme\": {\n      \"dark\": {\n         \"name\": \"Ricer\"\n      }\n   }\n}\n");
     defer fixture.deinit();
-    try from(test_theme).apply(&fixture.output);
-    try testing.expect(std.mem.indexOf(u8, fixture.planned("~/.config/vicinae/settings.json"), "opacity") == null);
-    try testing.expectEqual(1, fixture.warnings.items.items.len);
-    try testing.expect(std.mem.indexOf(u8, fixture.warnings.items.items[0].message, "launcher_window.opacity") != null);
+    var app = from(test_theme);
+    app.icon_theme = "kosm";
+    try app.apply(&fixture.output);
+    const settings = fixture.planned("~/.config/vicinae/settings.json");
+    try testing.expect(std.mem.indexOf(u8, settings, "opacity") == null);
+    try testing.expect(std.mem.indexOf(u8, settings, "icon_theme") == null);
+    try testing.expectEqual(2, fixture.warnings.items.items.len);
+    try testing.expect(std.mem.indexOf(u8, fixture.warnings.items.items[0].message, "theme.dark.icon_theme") != null);
+    try testing.expect(std.mem.indexOf(u8, fixture.warnings.items.items[1].message, "launcher_window.opacity") != null);
 }
 
 test "App{} writes only the meta, a light theme is selected under light, and a bad file fails" {

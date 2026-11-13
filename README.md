@@ -6,9 +6,10 @@ The app writes the theme whole to `~/.local/share/vicinae/themes/kosm.toml`, wit
 colors that are set; Vicinae derives the rest from the core colors, or takes them from
 `meta.inherits`. It then edits `~/.config/vicinae/settings.json`, keeping its comments and
 other settings: `theme.dark.name` (or `theme.light.name`, by `meta.variant`) becomes `kosm`,
-`font.normal.family` and `font.normal.size` take `font_family` and `font_size`, and
-`launcher_window.opacity` takes `opacity`, when they are set (a missing opacity, as before
-one is picked in Vicinae, is left alone with a warning). Those keys must be in the settings already, as Vicinae writes them once a theme or
+`font.normal.family` and `font.normal.size` take `font_family` and `font_size`,
+`theme.dark.icon_theme` (by variant too) takes `icon_theme`, and `launcher_window.opacity` takes
+`opacity`, when they are set (a missing icon theme or opacity, as before one is picked in
+Vicinae, is left alone with a warning). Those keys must be in the settings already, as Vicinae writes them once a theme or
 font is picked in its own settings. Set `settings = null` to leave the file alone.
 
 Vicinae lists the theme under the theme's `name` (`Theme.name`), or the kosmos' name when that
@@ -31,4 +32,5 @@ the launcher opaque. The font is left alone.
 | `colors` | every section of Vicinae's theme template (`vicinae theme template`): `core`, `main_window`, `settings_window`, `accents`, `shortcut`, `text`, `input`, `button`, `list`, `grid`, `scrollbars`, `loading`; null leaves each color to Vicinae |
 | `font_family` | null: left as it is |
 | `font_size` | null: left as it is |
+| `icon_theme` | null: left as it is; the icon theme's folder name, which `kosm_base` sets |
 | `opacity` | null: left as it is; `from`: the theme's `background_alpha` |
