@@ -1,16 +1,20 @@
 # kosm_vicinae
 
-Vicinae for kosm: a theme of its own, and the launcher's font.
+Vicinae for kosm: a theme of its own, and a settings file of its own selecting it.
 
 The app writes the theme whole to `~/.local/share/vicinae/themes/kosm.toml`, with only the
 colors that are set; Vicinae derives the rest from the core colors, or takes them from
-`meta.inherits`. It then edits `~/.config/vicinae/settings.json`, keeping its comments and
-other settings: `theme.dark.name` (or `theme.light.name`, by `meta.variant`) becomes `kosm`,
-`font.normal.family` and `font.normal.size` take `font_family` and `font_size`,
-`theme.dark.icon_theme` (by variant too) takes `icon_theme`, and `launcher_window.opacity` takes
-`opacity`, when they are set (a missing icon theme or opacity, as before one is picked in
-Vicinae, is left alone with a warning). Those keys must be in the settings already, as Vicinae writes them once a theme or
-font is picked in its own settings. Set `settings = null` to leave the file alone.
+`meta.inherits`. It then writes `~/.config/vicinae/kosm.json` whole: the theme selected for both
+of Vicinae's appearances (`theme.dark.name` and `theme.light.name`), and `font.normal.family`,
+`font.normal.size`, the icon theme (`theme.*.icon_theme`) and `launcher_window.opacity` from
+`font_family`, `font_size`, `icon_theme` and `opacity` when they are set.
+
+Vicinae reads `kosm.json` through the `imports` of `~/.config/vicinae/settings.json`, which the
+app keeps listing it: when the entry is missing it is added at the end of `imports`, or the key
+itself at the end of the settings, keeping their comments and layout. Keys in `settings.json`
+override imported ones, so the apply warns about any it sets that `kosm.json` writes; remove
+them there. Set `settings = null` to leave `settings.json` alone and import `kosm.json` yourself,
+or `kosm_settings = null` to write only the theme.
 
 Vicinae reloads its theme and settings by itself. With `icon_theme` set, every apply restarts
 a running Vicinae server (`vicinae server --replace`, detached): it reads an icon theme's files
@@ -32,10 +36,11 @@ the launcher opaque. The font is left alone.
 |---|---|
 | `file` | `~/.local/share/vicinae/themes/{name}.toml`; `{name}` is `kosm`, or the kosmos' name with `files = .per_kosmos`; the theme is selected by the file name without `.toml` |
 | `files` | the theme's `files`: `.shared` or `.per_kosmos` |
-| `settings` | `~/.config/vicinae/settings.json`; null leaves it alone |
-| `meta` | `name` (the theme's `name`, or the name kosm applies the kosmos under), `description`, `variant = .dark`, `inherits = null` |
+| `kosm_settings` | `~/.config/vicinae/kosm.json`, written whole; null writes none |
+| `settings` | `~/.config/vicinae/settings.json`, made to import `kosm_settings`; null leaves it alone |
+| `meta` | `name` (the theme's `name`, or the name kosm applies the kosmos under), `description`, `variant = .dark` (picks Vicinae's icons), `inherits = null` |
 | `colors` | every section of Vicinae's theme template (`vicinae theme template`): `core`, `main_window`, `settings_window`, `accents`, `shortcut`, `text`, `input`, `button`, `list`, `grid`, `scrollbars`, `loading`; null leaves each color to Vicinae |
-| `font_family` | null: left as it is |
-| `font_size` | null: left as it is |
-| `icon_theme` | null: left as it is; the icon theme's folder name, which `kosm_base` sets |
-| `opacity` | null: left as it is; `from`: the theme's `background_alpha` |
+| `font_family` | null: not written |
+| `font_size` | null: not written |
+| `icon_theme` | null: not written; the icon theme's folder name, which `kosm_base` sets |
+| `opacity` | null: not written; `from`: the theme's `background_alpha` |

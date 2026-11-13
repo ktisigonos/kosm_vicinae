@@ -9,12 +9,12 @@
             .hash = "kosm_toml-0.0.0-BgmamBfgAAAYwpK4ideLKPX2IRWSILJCgXUVRJUmzwwd",
         },
         .kosm_json = .{
-            .url = "git+https://git.nnstdios.com/ktisigonos/kosm_json?ref=master#125138c7ee3c5d75c2dc102fada2d6f63e6a2c7f",
-            .hash = "kosm_json-0.0.0-F6-IdUN_AACuHqsF6DZs7qidRylJvAMBBu2eZ-6b-f6m",
+            .url = "git+https://git.nnstdios.com/ktisigonos/kosm_json?ref=master#9bdef5a5a41e4c5951269e70268acfeba1a16b45",
+            .hash = "kosm_json-0.0.0-F6-Idb2qAADSKPg6lCwaWLWNCwevefNEBVEPBTxbuGWg",
         },
         .kosm = .{
-            .url = "git+https://git.nnstdios.com/ktisigonos/kosm?ref=master#7346ed5bfef5f16f8d3cd39d1d437e746746a2a8",
-            .hash = "kosm-0.0.0-YCShsgmjCgDiHp77PKiytuVIJmGxJFJZwID74VSnDXpM",
+            .url = "git+https://git.nnstdios.com/ktisigonos/kosm?ref=master#2c9cd325d6caa18a2eeebffdced5c3f309bad4da",
+            .hash = "kosm-0.0.0-YCShslEpDACCVyYhyc1qrMEGijrZelH5XPFEj20z_fAb",
         },
     },
     .paths = .{
