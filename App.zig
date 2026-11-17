@@ -189,7 +189,7 @@ pub const Meta = struct {
 pub const Variant = enum { dark, light };
 
 /// The window's opacity from the theme's `background_alpha`, and colors from the theme: the core from the background, foreground and accent roles, danger
-/// and success from the error and success roles, the accents from the wheel, muted text and selections from the theme's variations. The rest Vicinae derives
+/// and success from the error and success roles, links from the link and visited roles, the accents from the wheel, muted text and selections from the theme's variations. The rest Vicinae derives
 /// from the core.
 pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
@@ -225,6 +225,7 @@ pub fn from(theme: kosm.Theme) App {
                 .danger = theme.roles.@"error",
                 .success = theme.roles.success,
                 .selection = .{ .background = foreground, .foreground = background },
+                .links = .{ .default = theme.roles.link, .visited = theme.roles.visited },
             },
             .list = .{ .item = .{ .selection = .{
                 .background = raised,
