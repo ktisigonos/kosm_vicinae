@@ -1,5 +1,5 @@
 //! A Vicinae theme of its own, and a settings file of its own selecting it with the font, icon
-//! theme and opacity, both generated whole; Vicinae's settings import the latter. Field names
+//! theme and launcher window's look, both generated whole; Vicinae's settings import the latter. Field names
 //! are Vicinae's.
 
 const App = @This();
@@ -13,8 +13,8 @@ file: []const u8 = "~/.local/share/vicinae/themes/{name}.toml",
 /// How `{name}` in `file` is filled: `kosm`, or the kosmos' name. Default: the theme's `files`.
 files: kosm.Theme.Files = .shared,
 /// The settings file kosm owns, written whole: the theme selected for both of Vicinae's
-/// appearances (`theme.dark` and `theme.light`), and the font, icon theme and opacity that are
-/// set. null: not written. Default: `~/.config/vicinae/kosm.json`.
+/// appearances (`theme.dark` and `theme.light`), and the font, icon theme and launcher window
+/// values that are set. null: not written. Default: `~/.config/vicinae/kosm.json`.
 kosm_settings: ?[]const u8 = "~/.config/vicinae/kosm.json",
 /// Vicinae's own settings, whose `imports` the app makes list `kosm_settings`, adding the key or
 /// the entry when missing. Keys set here override the imported ones, so the apply warns about
@@ -35,6 +35,31 @@ icon_theme: ?[]const u8 = null,
 /// `launcher_window.opacity`: how opaque the launcher's window is, 0 to 1. `from`: the theme's
 /// `background_alpha`. null: not written, Vicinae's default.
 opacity: ?f64 = null,
+/// `launcher_window.rounding`: the launcher window's corner radius in pixels. null: not
+/// written, Vicinae's default (10).
+rounding: ?u32 = null,
+/// `launcher_window.material`: what shows through a translucent window. null: not written,
+/// Vicinae's default (`auto`).
+material: ?Material = null,
+/// `launcher_window.client_side_decorations.border_width`: the border Vicinae draws around its
+/// window, in pixels. null: not written, Vicinae's default (1).
+border_width: ?u32 = null,
+/// `launcher_window.client_side_decorations.shadow_size`: the shadow Vicinae draws around its
+/// window, in pixels; drawn only as a layer surface on a compositor that can blur a region.
+/// null: not written, Vicinae's default (12).
+shadow_size: ?u32 = null,
+
+/// What shows through a translucent launcher window; visible only with `opacity` below 1.
+pub const Material = enum {
+    /// The window's background alone.
+    none,
+    /// The desktop behind it, blurred.
+    blur,
+    /// Liquid glass, where the compositor offers it.
+    liquid_glass,
+    /// Liquid glass when available, else blur.
+    auto,
+};
 
 /// A theme's `[colors]`.
 pub const Colors = @import("Colors.zig");
@@ -138,7 +163,7 @@ pub fn apply(self: App, output: *kosm.Output) !void {
 }
 
 /// What `kosm_settings` holds: the theme for both appearances, and the font, icon theme and
-/// opacity that are set.
+/// launcher window values that are set.
 fn settingsValue(self: App, allocator: std.mem.Allocator, theme_name: []const u8) std.mem.Allocator.Error!kosm.Value {
     var appearance: std.ArrayList(kosm.Value.Entry) = .empty;
     try appearance.append(allocator, .{ .key = "name", .value = .{ .string = theme_name } });
@@ -156,11 +181,21 @@ fn settingsValue(self: App, allocator: std.mem.Allocator, theme_name: []const u8
         const font = try allocator.dupe(kosm.Value.Entry, &.{.{ .key = "normal", .value = .{ .table = normal.items } }});
         try sections.append(allocator, .{ .key = "font", .value = .{ .table = font } });
     }
-    if (self.opacity) |opacity| {
-        const window = try allocator.dupe(kosm.Value.Entry, &.{.{ .key = "opacity", .value = .{ .float = opacity } }});
-        try sections.append(allocator, .{ .key = "launcher_window", .value = .{ .table = window } });
-    }
+    if (try self.launcherWindow(allocator)) |window| try sections.append(allocator, .{ .key = "launcher_window", .value = window });
     return .{ .table = sections.items };
+}
+
+/// `launcher_window` with the values that are set; null when none is.
+fn launcherWindow(self: App, allocator: std.mem.Allocator) std.mem.Allocator.Error!?kosm.Value {
+    var window: std.ArrayList(kosm.Value.Entry) = .empty;
+    if (self.opacity) |opacity| try window.append(allocator, .{ .key = "opacity", .value = .{ .float = opacity } });
+    if (self.rounding) |rounding| try window.append(allocator, .{ .key = "rounding", .value = .{ .integer = rounding } });
+    if (self.material) |material| try window.append(allocator, .{ .key = "material", .value = .{ .string = @tagName(material) } });
+    var decorations: std.ArrayList(kosm.Value.Entry) = .empty;
+    if (self.border_width) |width| try decorations.append(allocator, .{ .key = "border_width", .value = .{ .integer = width } });
+    if (self.shadow_size) |size| try decorations.append(allocator, .{ .key = "shadow_size", .value = .{ .integer = size } });
+    if (decorations.items.len != 0) try window.append(allocator, .{ .key = "client_side_decorations", .value = .{ .table = decorations.items } });
+    return if (window.items.len == 0) null else .{ .table = window.items };
 }
 
 /// How `settings` names `kosm_settings` in its `imports`: by file name when both are in one
@@ -200,6 +235,11 @@ fn warnOverridden(self: App, output: *kosm.Output, settings: *kosm.Output.Select
         .{ .path = "font.normal.family", .written = self.font_family != null },
         .{ .path = "font.normal.size", .written = self.font_size != null },
         .{ .path = "launcher_window.opacity", .written = self.opacity != null },
+        .{ .path = "launcher_window.rounding", .written = self.rounding != null },
+        .{ .path = "launcher_window.material", .written = self.material != null },
+        .{ .path = "launcher_window.client_side_decorations.rounding", .written = self.rounding != null },
+        .{ .path = "launcher_window.client_side_decorations.border_width", .written = self.border_width != null },
+        .{ .path = "launcher_window.client_side_decorations.shadow_size", .written = self.shadow_size != null },
     };
     var overridden: std.ArrayList(u8) = .empty;
     for (keys) |key| {
@@ -439,4 +479,35 @@ test "per kosmos, the theme is a file of the kosmos' own, selected by it and sho
     const written = fixture.planned("~/.local/share/vicinae/themes/krystallos.dark.toml");
     try testing.expect(std.mem.startsWith(u8, written, "[meta]\nname = \"Krystallos\"\n"));
     try testing.expect(std.mem.indexOf(u8, fixture.planned("~/.config/vicinae/kosm.json"), "\"name\": \"krystallos.dark\"") != null);
+}
+
+test "the launcher window's rounding, material, border and shadow go in kosm.json, and settings setting them warn" {
+    var fixture: Fixture = undefined;
+    try fixture.init("{\"launcher_window\": {\"client_side_decorations\": {\"enabled\": true, \"rounding\": 4}}}");
+    defer fixture.deinit();
+    const app: App = .{ .rounding = 0, .material = .none, .border_width = 2, .shadow_size = 0 };
+    try app.apply(&fixture.output);
+    try testing.expectEqualStrings(
+        \\{
+        \\  "theme": {
+        \\    "dark": {
+        \\      "name": "kosm"
+        \\    },
+        \\    "light": {
+        \\      "name": "kosm"
+        \\    }
+        \\  },
+        \\  "launcher_window": {
+        \\    "rounding": 0,
+        \\    "material": "none",
+        \\    "client_side_decorations": {
+        \\      "border_width": 2,
+        \\      "shadow_size": 0
+        \\    }
+        \\  }
+        \\}
+        \\
+    , fixture.planned("~/.config/vicinae/kosm.json"));
+    try testing.expectEqual(1, fixture.warnings.items.items.len);
+    try testing.expectEqualStrings("sets launcher_window.client_side_decorations.rounding, which override ~/.config/vicinae/kosm.json; remove them to use kosm's", fixture.warnings.items.items[0].message);
 }

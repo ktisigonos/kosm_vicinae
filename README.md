@@ -6,8 +6,9 @@ The app writes the theme whole to `~/.local/share/vicinae/themes/kosm.toml`, wit
 colors that are set; Vicinae derives the rest from the core colors, or takes them from
 `meta.inherits`. It then writes `~/.config/vicinae/kosm.json` whole: the theme selected for both
 of Vicinae's appearances (`theme.dark.name` and `theme.light.name`), and `font.normal.family`,
-`font.normal.size`, the icon theme (`theme.*.icon_theme`) and `launcher_window.opacity` from
-`font_family`, `font_size`, `icon_theme` and `opacity` when they are set.
+`font.normal.size`, the icon theme (`theme.*.icon_theme`) and the launcher window's
+`opacity`, `rounding`, `material` and `client_side_decorations.border_width` and `shadow_size`
+from the fields of those names when they are set.
 
 Vicinae reads `kosm.json` through the `imports` of `~/.config/vicinae/settings.json`, which the
 app keeps listing it: when the entry is missing it is added at the end of `imports`, or the key
@@ -44,3 +45,7 @@ the launcher opaque. The font is left alone.
 | `font_size` | null: not written |
 | `icon_theme` | null: not written; the icon theme's folder name, which `kosm_base` sets |
 | `opacity` | null: not written; `from`: the theme's `background_alpha` |
+| `rounding` | null: not written (Vicinae's 10); the window's corner radius in pixels |
+| `material` | null: not written (Vicinae's `auto`); `.none`, `.blur`, `.liquid_glass` or `.auto`, shown only with `opacity` below 1 |
+| `border_width` | null: not written (Vicinae's 1); the border Vicinae draws, in pixels |
+| `shadow_size` | null: not written (Vicinae's 12); the shadow Vicinae draws as a layer surface, in pixels |
