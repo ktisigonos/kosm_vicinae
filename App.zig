@@ -1,5 +1,5 @@
-//! A Vicinae theme of its own, and a settings file of its own selecting it with the font, icon
-//! theme and launcher window's look, both generated whole; Vicinae's settings import the latter. Field names
+//! A Vicinae theme of its own, and a settings file of its own selecting it with every other
+//! setting that is set, both generated whole; Vicinae's settings import the latter. Field names
 //! are Vicinae's.
 
 const App = @This();
@@ -13,8 +13,8 @@ file: []const u8 = "~/.local/share/vicinae/themes/{name}.toml",
 /// How `{name}` in `file` is filled: `kosm`, or the kosmos' name. Default: the theme's `files`.
 files: kosm.Theme.Files = .shared,
 /// The settings file kosm owns, written whole: the theme selected for both of Vicinae's
-/// appearances (`theme.dark` and `theme.light`), and the font, icon theme and launcher window
-/// values that are set. null: not written. Default: `~/.config/vicinae/kosm.json`.
+/// appearances (`theme.dark` and `theme.light`), and every setting below that is set. null: not
+/// written. Default: `~/.config/vicinae/kosm.json`.
 kosm_settings: ?[]const u8 = "~/.config/vicinae/kosm.json",
 /// Vicinae's own settings, whose `imports` the app makes list `kosm_settings`, adding the key or
 /// the entry when missing. Keys set here override the imported ones, so the apply warns about
@@ -25,40 +25,147 @@ settings: ?[]const u8 = "~/.config/vicinae/settings.json",
 meta: Meta = .{},
 /// `[colors]`.
 colors: Colors = .{},
-/// `font.normal.family`. null: not written, Vicinae's default.
-font_family: ?[]const u8 = null,
-/// `font.normal.size`, in points. null: not written, Vicinae's default.
-font_size: ?f64 = null,
 /// `theme.dark.icon_theme` and `theme.light.icon_theme`: the icon theme's folder name. null
 /// (default): not written, Vicinae's default.
 icon_theme: ?[]const u8 = null,
-/// `launcher_window.opacity`: how opaque the launcher's window is, 0 to 1. `from`: the theme's
-/// `background_alpha`. null: not written, Vicinae's default.
-opacity: ?f64 = null,
-/// `launcher_window.rounding`: the launcher window's corner radius in pixels. null: not
-/// written, Vicinae's default (10).
-rounding: ?u32 = null,
-/// `launcher_window.material`: what shows through a translucent window. null: not written,
-/// Vicinae's default (`auto`).
-material: ?Material = null,
-/// `launcher_window.client_side_decorations.border_width`: the border Vicinae draws around its
-/// window, in pixels. null: not written, Vicinae's default (1).
-border_width: ?u32 = null,
-/// `launcher_window.client_side_decorations.shadow_size`: the shadow Vicinae draws around its
-/// window, in pixels; drawn only as a layer surface on a compositor that can blur a region.
-/// null: not written, Vicinae's default (12).
-shadow_size: ?u32 = null,
+/// `telemetry`: what Vicinae reports to its server.
+telemetry: Telemetry = .{},
+/// `input_server.enabled`: the helper that pastes into the active window and expands snippets;
+/// off, Vicinae copies instead of pasting. null: Vicinae's default (on).
+input_server: Toggle = .{},
+/// `tray.enabled`: Vicinae's icon in the system tray. null: Vicinae's default (on).
+tray: Toggle = .{},
+/// `updates`: update notices.
+updates: Updates = .{},
+/// `search_files_in_root`: whether root search finds files too, at some CPU cost. null:
+/// Vicinae's default (off).
+search_files_in_root: ?bool = null,
+/// `activate_on_single_click`: activate list and grid items with one click. null: Vicinae's
+/// default (off).
+activate_on_single_click: ?bool = null,
+/// `escape_key_behavior`: what Escape does. null: Vicinae's default (`navigate_back`).
+escape_key_behavior: ?EscapeKeyBehavior = null,
+/// `pop_on_backspace`: go back on Backspace in an empty search. null: Vicinae's default (on).
+pop_on_backspace: ?bool = null,
+/// `close_on_focus_loss`: close the window when it loses focus; does nothing as a layer surface
+/// with `exclusive` keyboard interactivity. null: Vicinae's default (off).
+close_on_focus_loss: ?bool = null,
+/// `consider_preedit`: search an input method's unfinished text as it is typed. null:
+/// Vicinae's default (off).
+consider_preedit: ?bool = null,
+/// `pop_to_root_on_close`: go back to root search whenever the window closes. null: Vicinae's
+/// default (off).
+pop_to_root_on_close: ?bool = null,
+/// `favicon_service`: where favicons come from. null: Vicinae's default (`twenty`).
+favicon_service: ?FaviconService = null,
+/// `keybinding`: the navigation scheme. null: Vicinae's default (`default`).
+keybinding: ?Keybinding = null,
+/// `font`: the font of Vicinae's interface.
+font: Font = .{},
+/// `launcher_window`: the launcher window's look, size and placement.
+launcher_window: LauncherWindow = .{},
+/// `global_shortcuts`: shortcuts that work system-wide, even with the window closed.
+global_shortcuts: GlobalShortcuts = .{},
+/// `keybinds`: shortcuts inside the launcher.
+keybinds: Keybinds = .{},
+/// `favorites`: entrypoint ids shown at the top of root search with no query
+/// (`clipboard:history`). null: Vicinae's default (`clipboard:history`).
+favorites: ?[]const []const u8 = null,
+/// `fallbacks`: entrypoint ids suggested when nothing matches the query (`files:search`). null:
+/// Vicinae's default (`files:search`).
+fallbacks: ?[]const []const u8 = null,
+/// `providers`: settings of the groups root search finds entrypoints in, each id at most once.
+/// Default: none.
+providers: []const Provider = &.{},
 
-/// What shows through a translucent launcher window; visible only with `opacity` below 1.
-pub const Material = enum {
-    /// The window's background alone.
+/// `launcher_window`.
+pub const LauncherWindow = @import("LauncherWindow.zig");
+/// `keybinds`.
+pub const Keybinds = @import("Keybinds.zig");
+/// One of `providers`.
+pub const Provider = @import("Provider.zig");
+
+/// A section holding only `enabled`.
+pub const Toggle = struct {
+    /// `enabled`. null: not written, Vicinae's default.
+    enabled: ?bool = null,
+};
+
+/// `telemetry`.
+pub const Telemetry = struct {
+    /// `system_info`: send the desktop environment, Vicinae's version and such once a day. null:
+    /// Vicinae's default (on).
+    system_info: ?bool = null,
+};
+
+/// `updates`.
+pub const Updates = struct {
+    /// `show_notice`: show a notice in the launcher when an update is available. null: Vicinae's
+    /// default (on).
+    show_notice: ?bool = null,
+};
+
+/// What Escape does in the launcher.
+pub const EscapeKeyBehavior = enum {
+    /// Go back one view.
+    navigate_back,
+    /// Close the window.
+    close_window,
+};
+
+/// Where Vicinae loads favicons from.
+pub const FaviconService = enum {
+    /// Twenty's favicon service.
+    twenty,
+    /// Google's favicon service.
+    google,
+    /// Load none, showing a placeholder.
     none,
-    /// The desktop behind it, blurred.
-    blur,
-    /// Liquid glass, where the compositor offers it.
-    liquid_glass,
-    /// Liquid glass when available, else blur.
-    auto,
+};
+
+/// How the keyboard moves through lists.
+pub const Keybinding = enum {
+    /// Vicinae's own scheme.
+    default,
+    /// Vim-style keys.
+    vim,
+    /// Emacs-style keys.
+    emacs,
+};
+
+/// `font`.
+pub const Font = struct {
+    /// `rendering`: how text is drawn. null: Vicinae's default (`qt`, `native` on macOS).
+    rendering: ?FontRendering = null,
+    /// `normal`: the interface's font.
+    normal: FontSpec = .{},
+};
+
+/// How Vicinae draws text.
+pub const FontRendering = enum {
+    /// The platform's rasterizer, like other apps; worse under fractional scaling on Linux.
+    native,
+    /// Qt's distance fields, faster when scaled or animated.
+    qt,
+};
+
+/// `font.normal`.
+pub const FontSpec = struct {
+    /// `family`: a family name, `auto` for the bundled Inter, or `system` for the platform's
+    /// default. null: Vicinae's default (`auto`).
+    family: ?[]const u8 = null,
+    /// `size` in points. null: Vicinae's default (10.5, 13 on macOS).
+    size: ?f64 = null,
+};
+
+/// `global_shortcuts`.
+pub const GlobalShortcuts = struct {
+    /// `toggle`: the shortcut opening and closing the launcher, written like `super+space`. null:
+    /// Vicinae's default (`super+control+space`, `alt+space` on macOS and Windows).
+    toggle: ?[]const u8 = null,
+    /// `inhibit_apps`: desktop file ids (`org.gnome.Boxes.desktop`) of apps that, while focused,
+    /// get every key instead. null: Vicinae's default (none).
+    inhibit_apps: ?[]const []const u8 = null,
 };
 
 /// A theme's `[colors]`.
@@ -92,7 +199,7 @@ pub fn from(theme: kosm.Theme) App {
     const raised = variations.state.selected.apply(background);
     return .{
         .files = theme.files,
-        .opacity = theme.background_alpha,
+        .launcher_window = .{ .opacity = theme.background_alpha },
         .meta = .{ .name = theme.name, .variant = if (theme.mode == .dark) .dark else .light },
         .colors = .{
             .core = .{
@@ -151,20 +258,30 @@ pub fn apply(self: App, output: *kosm.Output) !void {
     if (self.meta.inherits) |inherits| try meta.append(output.allocator, .{ .key = "inherits", .value = .{ .string = inherits } });
     var sections: std.ArrayList(kosm.Value.Entry) = .empty;
     try sections.append(output.allocator, .{ .key = "meta", .value = .{ .table = meta.items } });
-    if (try colorTable(output.allocator, self.colors)) |colors| try sections.append(output.allocator, .{ .key = "colors", .value = colors });
+    if (try setValue(output, file, self.colors)) |colors| try sections.append(output.allocator, .{ .key = "colors", .value = colors });
     try output.generate(.{ .file = file, .lang = "toml" }, kosm.Value{ .table = sections.items });
 
     const kosm_settings = self.kosm_settings orelse return;
-    try output.generate(.{ .file = kosm_settings, .lang = "json" }, try self.settingsValue(output.allocator, theme_name));
+    const written = try self.settingsValue(output, kosm_settings, theme_name);
+    try output.generate(.{ .file = kosm_settings, .lang = "json" }, written);
     const settings_file = self.settings orelse return;
     var settings = try output.edit(.{ .files = settings_file, .lang = "jsonc" });
     try importOnce(output, &settings, try importEntry(output, settings_file, kosm_settings));
-    try self.warnOverridden(output, &settings, kosm_settings);
+    try warnOverridden(output, &settings, kosm_settings, written);
 }
 
-/// What `kosm_settings` holds: the theme for both appearances, and the font, icon theme and
-/// launcher window values that are set.
-fn settingsValue(self: App, allocator: std.mem.Allocator, theme_name: []const u8) std.mem.Allocator.Error!kosm.Value {
+/// The fields written to `kosm_settings` after the theme, in the order Vicinae lists them.
+const settings_fields = .{
+    "telemetry",            "input_server",             "tray",                 "updates",
+    "search_files_in_root", "activate_on_single_click", "escape_key_behavior",  "pop_on_backspace",
+    "close_on_focus_loss",  "consider_preedit",         "pop_to_root_on_close", "favicon_service",
+    "keybinding",           "font",                     "launcher_window",      "global_shortcuts",
+    "keybinds",             "favorites",                "fallbacks",            "providers",
+};
+
+/// What `kosm_settings` holds: the theme for both appearances, and every setting that is set.
+fn settingsValue(self: App, output: *kosm.Output, kosm_settings: []const u8, theme_name: []const u8) kosm.Output.Error!kosm.Value {
+    const allocator = output.allocator;
     var appearance: std.ArrayList(kosm.Value.Entry) = .empty;
     try appearance.append(allocator, .{ .key = "name", .value = .{ .string = theme_name } });
     if (self.icon_theme) |icon_theme| try appearance.append(allocator, .{ .key = "icon_theme", .value = .{ .string = icon_theme } });
@@ -174,28 +291,71 @@ fn settingsValue(self: App, allocator: std.mem.Allocator, theme_name: []const u8
     });
     var sections: std.ArrayList(kosm.Value.Entry) = .empty;
     try sections.append(allocator, .{ .key = "theme", .value = .{ .table = theme } });
-    var normal: std.ArrayList(kosm.Value.Entry) = .empty;
-    if (self.font_family) |family| try normal.append(allocator, .{ .key = "family", .value = .{ .string = family } });
-    if (self.font_size) |size| try normal.append(allocator, .{ .key = "size", .value = .{ .float = size } });
-    if (normal.items.len != 0) {
-        const font = try allocator.dupe(kosm.Value.Entry, &.{.{ .key = "normal", .value = .{ .table = normal.items } }});
-        try sections.append(allocator, .{ .key = "font", .value = .{ .table = font } });
+    inline for (settings_fields) |name| {
+        if (try setValue(output, kosm_settings, @field(self, name))) |value| try sections.append(allocator, .{ .key = name, .value = value });
     }
-    if (try self.launcherWindow(allocator)) |window| try sections.append(allocator, .{ .key = "launcher_window", .value = window });
     return .{ .table = sections.items };
 }
 
-/// `launcher_window` with the values that are set; null when none is.
-fn launcherWindow(self: App, allocator: std.mem.Allocator) std.mem.Allocator.Error!?kosm.Value {
-    var window: std.ArrayList(kosm.Value.Entry) = .empty;
-    if (self.opacity) |opacity| try window.append(allocator, .{ .key = "opacity", .value = .{ .float = opacity } });
-    if (self.rounding) |rounding| try window.append(allocator, .{ .key = "rounding", .value = .{ .integer = rounding } });
-    if (self.material) |material| try window.append(allocator, .{ .key = "material", .value = .{ .string = @tagName(material) } });
-    var decorations: std.ArrayList(kosm.Value.Entry) = .empty;
-    if (self.border_width) |width| try decorations.append(allocator, .{ .key = "border_width", .value = .{ .integer = width } });
-    if (self.shadow_size) |size| try decorations.append(allocator, .{ .key = "shadow_size", .value = .{ .integer = size } });
-    if (decorations.items.len != 0) try window.append(allocator, .{ .key = "client_side_decorations", .value = .{ .table = decorations.items } });
-    return if (window.items.len == 0) null else .{ .table = window.items };
+/// `value` as Vicinae reads it, or null when nothing in it is set: a null optional, a section
+/// with nothing set, or an empty list of providers or preferences. Fails, naming `file`, on an id
+/// given twice among providers, or among one provider's entrypoints or tools.
+fn setValue(output: *kosm.Output, file: []const u8, value: anytype) kosm.Output.Error!?kosm.Value {
+    const T = @TypeOf(value);
+    if (T == kosm.Color) return .{ .color = value };
+    if (T == bool) return .{ .boolean = value };
+    if (T == u32) return .{ .integer = value };
+    if (T == f64) return .{ .float = value };
+    if (T == []const u8) return .{ .string = value };
+    if (T == []const []const u8) {
+        const items = try output.allocator.alloc(kosm.Value, value.len);
+        for (value, items) |text, *item| item.* = .{ .string = text };
+        return .{ .list = items };
+    }
+    if (T == []const kosm.Value.Entry) return if (value.len == 0) null else .{ .table = value };
+    if (T == Keybinds) return keybindsTable(output.allocator, value);
+    if (T == []const Provider) return keyedTable(output, file, "provider", value);
+    if (T == []const Provider.Entrypoint) return keyedTable(output, file, "entrypoint", value);
+    if (T == []const Provider.Tool) return keyedTable(output, file, "tool", value);
+    switch (@typeInfo(T)) {
+        .optional => return if (value) |present| setValue(output, file, present) else null,
+        .@"enum" => return .{ .string = @tagName(value) },
+        .@"struct" => return structTable(output, file, value),
+        else => @compileError("kosm_vicinae cannot write a " ++ @typeName(T)),
+    }
+}
+
+/// The set fields of `section` by name, but `id`; null when none is set.
+fn structTable(output: *kosm.Output, file: []const u8, section: anytype) kosm.Output.Error!?kosm.Value {
+    var entries: std.ArrayList(kosm.Value.Entry) = .empty;
+    inline for (@typeInfo(@TypeOf(section)).@"struct".field_names) |name| {
+        if (comptime std.mem.eql(u8, name, "id")) continue;
+        if (try setValue(output, file, @field(section, name))) |value| try entries.append(output.allocator, .{ .key = name, .value = value });
+    }
+    return if (entries.items.len == 0) null else .{ .table = entries.items };
+}
+
+/// The set keybinds under Vicinae's ids; null when none is.
+fn keybindsTable(allocator: std.mem.Allocator, keybinds: Keybinds) std.mem.Allocator.Error!?kosm.Value {
+    var entries: std.ArrayList(kosm.Value.Entry) = .empty;
+    inline for (@typeInfo(Keybinds).@"struct".field_names) |name| {
+        if (@field(keybinds, name)) |shortcut| try entries.append(allocator, .{ .key = comptime Keybinds.id(name), .value = .{ .string = shortcut } });
+    }
+    return if (entries.items.len == 0) null else .{ .table = entries.items };
+}
+
+/// `items` as a table keyed by their ids, failing on an id given twice; null when there are none.
+fn keyedTable(output: *kosm.Output, file: []const u8, comptime what: []const u8, items: anytype) kosm.Output.Error!?kosm.Value {
+    if (items.len == 0) return null;
+    const entries = try output.allocator.alloc(kosm.Value.Entry, items.len);
+    for (items, entries, 0..) |item, *entry, index| {
+        for (items[0..index]) |earlier| {
+            if (std.mem.eql(u8, earlier.id, item.id)) return output.fail(file, what ++ " '{s}' is listed twice; keep one", .{item.id});
+        }
+        const settings = try structTable(output, file, item) orelse kosm.Value{ .table = &.{} };
+        entry.* = .{ .key = item.id, .value = settings };
+    }
+    return .{ .table = entries };
 }
 
 /// How `settings` names `kosm_settings` in its `imports`: by file name when both are in one
@@ -225,45 +385,17 @@ fn sameImport(text: []const u8, entry: []const u8) bool {
     return std.mem.eql(u8, path, entry) or (std.mem.startsWith(u8, path, "./") and std.mem.eql(u8, path[2..], entry));
 }
 
-/// Warns about the keys `kosm_settings` writes that `settings` also sets, which win over it.
-fn warnOverridden(self: App, output: *kosm.Output, settings: *kosm.Output.Selection, kosm_settings: []const u8) kosm.Output.Error!void {
-    const keys = [_]struct { path: []const u8, written: bool }{
-        .{ .path = "theme.dark.name", .written = true },
-        .{ .path = "theme.light.name", .written = true },
-        .{ .path = "theme.dark.icon_theme", .written = self.icon_theme != null },
-        .{ .path = "theme.light.icon_theme", .written = self.icon_theme != null },
-        .{ .path = "font.normal.family", .written = self.font_family != null },
-        .{ .path = "font.normal.size", .written = self.font_size != null },
-        .{ .path = "launcher_window.opacity", .written = self.opacity != null },
-        .{ .path = "launcher_window.rounding", .written = self.rounding != null },
-        .{ .path = "launcher_window.material", .written = self.material != null },
-        .{ .path = "launcher_window.client_side_decorations.rounding", .written = self.rounding != null },
-        .{ .path = "launcher_window.client_side_decorations.border_width", .written = self.border_width != null },
-        .{ .path = "launcher_window.client_side_decorations.shadow_size", .written = self.shadow_size != null },
-    };
+/// Warns about the values `kosm_settings` writes (`written`) that `settings` also sets, which win
+/// over it: Vicinae merges sections key by key, and takes a list whole.
+fn warnOverridden(output: *kosm.Output, settings: *kosm.Output.Selection, kosm_settings: []const u8, written: kosm.Value) kosm.Output.Error!void {
     var overridden: std.ArrayList(u8) = .empty;
-    for (keys) |key| {
-        if (!key.written or (try settings.nodes(key.path)).len == 0) continue;
+    for (try kosm.Setting.leaves(output.allocator, written)) |leaf| {
+        if ((try settings.nodes(leaf.path)).len == 0) continue;
         if (overridden.items.len != 0) try overridden.appendSlice(output.allocator, ", ");
-        try overridden.appendSlice(output.allocator, key.path);
+        try overridden.appendSlice(output.allocator, leaf.path);
     }
     if (overridden.items.len == 0) return;
     try output.warn(settings.selector, "sets {s}, which override {s}; remove them to use kosm's", .{ overridden.items, kosm_settings });
-}
-
-/// The set colors of a section and the sections inside it, by field name; null when none is set,
-/// so empty sections are not written.
-fn colorTable(allocator: std.mem.Allocator, section: anytype) std.mem.Allocator.Error!?kosm.Value {
-    var entries: std.ArrayList(kosm.Value.Entry) = .empty;
-    inline for (@typeInfo(@TypeOf(section)).@"struct".field_names) |name| {
-        const field = @field(section, name);
-        const value: ?kosm.Value = if (@TypeOf(field) == ?kosm.Color)
-            if (field) |color| .{ .color = color } else null
-        else
-            try colorTable(allocator, field);
-        if (value) |present| try entries.append(allocator, .{ .key = name, .value = present });
-    }
-    return if (entries.items.len == 0) null else .{ .table = entries.items };
 }
 
 const testing = std.testing;
@@ -353,8 +485,7 @@ test "the theme is written whole, kosm.json selects it for both appearances, and
     try fixture.init(clean_settings);
     defer fixture.deinit();
     var app = from(test_theme);
-    app.font_family = "Iosevka";
-    app.font_size = 12.5;
+    app.font.normal = .{ .family = "Iosevka", .size = 12.5 };
     app.icon_theme = "kosm";
     try app.apply(&fixture.output);
 
@@ -483,9 +614,9 @@ test "per kosmos, the theme is a file of the kosmos' own, selected by it and sho
 
 test "the launcher window's rounding, material, border and shadow go in kosm.json, and settings setting them warn" {
     var fixture: Fixture = undefined;
-    try fixture.init("{\"launcher_window\": {\"client_side_decorations\": {\"enabled\": true, \"rounding\": 4}}}");
+    try fixture.init("{\"launcher_window\": {\"client_side_decorations\": {\"rounding\": 4, \"border_width\": 1}}}");
     defer fixture.deinit();
-    const app: App = .{ .rounding = 0, .material = .none, .border_width = 2, .shadow_size = 0 };
+    const app: App = .{ .launcher_window = .{ .rounding = 0, .material = .none, .client_side_decorations = .{ .border_width = 2, .shadow_size = 0 } } };
     try app.apply(&fixture.output);
     try testing.expectEqualStrings(
         \\{
@@ -498,8 +629,8 @@ test "the launcher window's rounding, material, border and shadow go in kosm.jso
         \\    }
         \\  },
         \\  "launcher_window": {
-        \\    "rounding": 0,
         \\    "material": "none",
+        \\    "rounding": 0,
         \\    "client_side_decorations": {
         \\      "border_width": 2,
         \\      "shadow_size": 0
@@ -509,5 +640,115 @@ test "the launcher window's rounding, material, border and shadow go in kosm.jso
         \\
     , fixture.planned("~/.config/vicinae/kosm.json"));
     try testing.expectEqual(1, fixture.warnings.items.items.len);
-    try testing.expectEqualStrings("sets launcher_window.client_side_decorations.rounding, which override ~/.config/vicinae/kosm.json; remove them to use kosm's", fixture.warnings.items.items[0].message);
+    // The deprecated `client_side_decorations.rounding` is read only without `rounding`, so it does not warn.
+    try testing.expectEqualStrings("sets launcher_window.client_side_decorations.border_width, which override ~/.config/vicinae/kosm.json; remove them to use kosm's", fixture.warnings.items.items[0].message);
+}
+
+test "every section is written in Vicinae's names, keybinds under their ids and providers by id" {
+    var fixture: Fixture = undefined;
+    try fixture.init(null);
+    defer fixture.deinit();
+    const app: App = .{
+        .settings = null,
+        .tray = .{ .enabled = false },
+        .escape_key_behavior = .close_window,
+        .font = .{ .rendering = .native },
+        .launcher_window = .{
+            .size = .{ .width = 900 },
+            .layer_shell = .{ .keyboard_interactivity = .on_demand, .layer = .overlay },
+            .clock = .{ .format = "hh:mm" },
+        },
+        .global_shortcuts = .{ .inhibit_apps = &.{"org.gnome.Boxes.desktop"} },
+        .keybinds = .{ .open_settings = "control+;", .action_copy_name = "control+shift+N" },
+        .favorites = &.{},
+        .providers = &.{.{
+            .id = "clipboard",
+            .enabled = true,
+            .entrypoints = &.{.{ .id = "history", .shortcut = "super+V", .preferences = &.{.{ .key = "limit", .value = .{ .integer = 50 } }} }},
+            .tools = &.{.{ .id = "copy", .policy = .ask }},
+        }},
+    };
+    try app.apply(&fixture.output);
+    const written = fixture.planned("~/.config/vicinae/kosm.json");
+    const expected =
+        \\  "tray": {
+        \\    "enabled": false
+        \\  },
+        \\  "escape_key_behavior": "close_window",
+        \\  "font": {
+        \\    "rendering": "native"
+        \\  },
+        \\  "launcher_window": {
+        \\    "clock": {
+        \\      "format": "hh:mm"
+        \\    },
+        \\    "size": {
+        \\      "width": 900
+        \\    },
+        \\    "layer_shell": {
+        \\      "keyboard_interactivity": "on_demand",
+        \\      "layer": "overlay"
+        \\    }
+        \\  },
+        \\  "global_shortcuts": {
+        \\    "inhibit_apps": [
+        \\      "org.gnome.Boxes.desktop"
+        \\    ]
+        \\  },
+        \\  "keybinds": {
+        \\    "open-settings": "control+;",
+        \\    "action.copy-name": "control+shift+N"
+        \\  },
+        \\  "favorites": [],
+        \\  "providers": {
+        \\    "clipboard": {
+        \\      "enabled": true,
+        \\      "entrypoints": {
+        \\        "history": {
+        \\          "shortcut": "super+V",
+        \\          "preferences": {
+        \\            "limit": 50
+        \\          }
+        \\        }
+        \\      },
+        \\      "tools": {
+        \\        "copy": {
+        \\          "policy": "ask"
+        \\        }
+        \\      }
+        \\    }
+        \\  }
+        \\}
+        \\
+    ;
+    try testing.expect(std.mem.endsWith(u8, written, expected));
+}
+
+test "an id listed twice fails, naming it" {
+    var fixture: Fixture = undefined;
+    try fixture.init(null);
+    defer fixture.deinit();
+    const app: App = .{ .providers = &.{.{ .id = "files", .entrypoints = &.{ .{ .id = "search" }, .{ .id = "search", .enabled = false } } }} };
+    try testing.expectError(error.AppFailed, app.apply(&fixture.output));
+    try testing.expectEqualStrings("entrypoint 'search' is listed twice; keep one", fixture.diagnostics.message());
+}
+
+test "settings overriding a keybind, a list or a provider's entrypoint warn, other keys of those sections do not" {
+    var fixture: Fixture = undefined;
+    try fixture.init(
+        \\{
+        \\  "keybinds": {"action.copy": "control+C", "action.pin": "control+P"},
+        \\  "favorites": ["files:search"],
+        \\  "providers": {"clipboard": {"entrypoints": {"history": {"enabled": false}}}}
+        \\}
+    );
+    defer fixture.deinit();
+    const app: App = .{
+        .keybinds = .{ .action_copy = "control+shift+C" },
+        .favorites = &.{"clipboard:history"},
+        .providers = &.{.{ .id = "clipboard", .enabled = true, .entrypoints = &.{.{ .id = "history", .enabled = true }} }},
+    };
+    try app.apply(&fixture.output);
+    try testing.expectEqual(1, fixture.warnings.items.items.len);
+    try testing.expectEqualStrings("sets keybinds.\"action.copy\", favorites, providers.clipboard.entrypoints.history.enabled, which override ~/.config/vicinae/kosm.json; remove them to use kosm's", fixture.warnings.items.items[0].message);
 }

@@ -5,16 +5,17 @@ Vicinae for kosm: a theme of its own, and a settings file of its own selecting i
 The app writes the theme whole to `~/.local/share/vicinae/themes/kosm.toml`, with only the
 colors that are set; Vicinae derives the rest from the core colors, or takes them from
 `meta.inherits`. It then writes `~/.config/vicinae/kosm.json` whole: the theme selected for both
-of Vicinae's appearances (`theme.dark.name` and `theme.light.name`), and `font.normal.family`,
-`font.normal.size`, the icon theme (`theme.*.icon_theme`) and the launcher window's
-`opacity`, `rounding`, `material` and `client_side_decorations.border_width` and `shadow_size`
-from the fields of those names when they are set.
+of Vicinae's appearances (`theme.dark.name` and `theme.light.name`), the icon theme
+(`theme.*.icon_theme`), and every other setting of `vicinae config default` that is set, under
+Vicinae's names. Deprecated settings (`launcher_window.blur`,
+`launcher_window.client_side_decorations.rounding`) are left out, as are `imports`, which the app
+manages, and the theme names, which select kosm's theme.
 
 Vicinae reads `kosm.json` through the `imports` of `~/.config/vicinae/settings.json`, which the
 app keeps listing it: when the entry is missing it is added at the end of `imports`, or the key
 itself at the end of the settings, keeping their comments and layout. Keys in `settings.json`
-override imported ones, so the apply warns about any it sets that `kosm.json` writes; remove
-them there. Set `settings = null` to leave `settings.json` alone and import `kosm.json` yourself,
+override imported ones key by key (a list whole), so the apply warns about any it sets that
+`kosm.json` writes; remove them there. Set `settings = null` to leave `settings.json` alone and import `kosm.json` yourself,
 or `kosm_settings = null` to write only the theme.
 
 Vicinae reloads its theme and settings by itself. With `icon_theme` set, every apply restarts
@@ -41,11 +42,28 @@ the launcher opaque. The font is left alone.
 | `settings` | `~/.config/vicinae/settings.json`, made to import `kosm_settings`; null leaves it alone |
 | `meta` | `name` (the theme's `name`, or the name kosm applies the kosmos under), `description`, `variant = .dark` (picks Vicinae's icons), `inherits = null` |
 | `colors` | every section of Vicinae's theme template (`vicinae theme template`): `core`, `main_window`, `settings_window`, `accents`, `shortcut`, `text`, `input`, `button`, `list`, `grid`, `scrollbars`, `loading`; null leaves each color to Vicinae |
-| `font_family` | null: not written |
-| `font_size` | null: not written |
 | `icon_theme` | null: not written; the icon theme's folder name, which `kosm_base` sets |
-| `opacity` | null: not written; `from`: the theme's `background_alpha` |
-| `rounding` | null: not written (Vicinae's 10); the window's corner radius in pixels |
-| `material` | null: not written (Vicinae's `auto`); `.none`, `.blur`, `.liquid_glass` or `.auto`, shown only with `opacity` below 1 |
-| `border_width` | null: not written (Vicinae's 1); the border Vicinae draws, in pixels |
-| `shadow_size` | null: not written (Vicinae's 12); the shadow Vicinae draws as a layer surface, in pixels |
+| `telemetry.system_info` | null (Vicinae's on) |
+| `input_server.enabled`, `tray.enabled` | null (Vicinae's on) |
+| `updates.show_notice` | null (Vicinae's on) |
+| `search_files_in_root`, `activate_on_single_click`, `close_on_focus_loss`, `consider_preedit`, `pop_to_root_on_close` | null (Vicinae's off) |
+| `pop_on_backspace` | null (Vicinae's on) |
+| `escape_key_behavior` | null (Vicinae's `navigate_back`); `.navigate_back` or `.close_window` |
+| `favicon_service` | null (Vicinae's `twenty`); `.twenty`, `.google` or `.none` |
+| `keybinding` | null (Vicinae's `default`); `.default`, `.vim` or `.emacs` |
+| `font.rendering` | null (Vicinae's `qt`, `native` on macOS); `.native` or `.qt` |
+| `font.normal.family`, `font.normal.size` | null (Vicinae's `auto`, the bundled Inter, at 10.5 points) |
+| `launcher_window.opacity` | null; `from`: the theme's `background_alpha` |
+| `launcher_window.material` | null (Vicinae's `auto`); `.none`, `.blur`, `.liquid_glass` or `.auto`, shown only with `opacity` below 1 |
+| `launcher_window.rounding` | null (Vicinae's 10); the window's corner radius in pixels |
+| `launcher_window.clock` | `enabled`, `format` (a Qt date-time format), `interval` (seconds); null leaves each to Vicinae (on, `hh:mm`, 60) |
+| `launcher_window.client_side_decorations` | `enabled`, `border_width`, `shadow_size` (drawn only as a layer surface); null leaves each to Vicinae (on, 1, 12) |
+| `launcher_window.compact_mode.enabled` | null (Vicinae's off) |
+| `launcher_window.size` | `width`, `height` in pixels; null leaves each to Vicinae (770, 480) |
+| `launcher_window.screen` | null (Vicinae's `auto`); X11 only |
+| `launcher_window.layer_shell` | `enabled`, `keyboard_interactivity` (`.exclusive` or `.on_demand`), `layer` (`.top` or `.overlay`); null leaves each to Vicinae (on, `exclusive`, `top`) |
+| `global_shortcuts.toggle` | null (Vicinae's `super+control+space`) |
+| `global_shortcuts.inhibit_apps` | null (none); desktop file ids |
+| `keybinds` | every shortcut of Vicinae's `keybinds`, its id in snake case (`action_copy_name` is `action.copy-name`); null leaves each to Vicinae |
+| `favorites`, `fallbacks` | null (Vicinae's `clipboard:history`, `files:search`); entrypoint ids |
+| `providers` | none; `.{ .id = "clipboard", .enabled = true }`; also `preferences`, `entrypoints` (`id`, `alias`, `enabled`, `shortcut`, `preferences`) and `tools` (`id`, `policy`, `preferences`), each id once |

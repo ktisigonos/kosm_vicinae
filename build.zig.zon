@@ -23,6 +23,9 @@
         "root.zig",
         "App.zig",
         "Colors.zig",
+        "LauncherWindow.zig",
+        "Keybinds.zig",
+        "Provider.zig",
         "README.md",
     },
 }

@@ -17,4 +17,5 @@ test {
     std.testing.refAllDecls(@This());
     std.testing.refAllDecls(App);
     std.testing.refAllDecls(App.Colors);
+    std.testing.refAllDecls(App.Keybinds);
 }
